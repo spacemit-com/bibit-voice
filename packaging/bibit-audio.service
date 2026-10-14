@@ -1,0 +1,22 @@
+[Unit]
+Description=Bibit audio, wake word and ASR service
+After=pipewire.service pipewire-pulse.service wireplumber.service
+StartLimitIntervalSec=60
+StartLimitBurst=10
+ConditionUser=!root
+# 模型资产由 bibit-voice-models.service 获取并校验，marker 是唯一的就绪判据。
+# 缺资产时本 unit 进入 skipped 而不是无限等待：无限等 marker 会把
+# bibit-voice-tool 的 start job 一起卡在 waiting，用户侧只剩下 socket 不存在
+# 这一句底层报错。资产后到由 bibit-voice-models.path 触发本 unit 启动。
+ConditionPathExists=/opt/bibit/models/.bibit-voice-models-downloaded
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bibit-audio --config /etc/bibit/bibit.conf
+Restart=on-failure
+RestartSec=1
+RestartPreventExitStatus=2 4 5 7
+TimeoutStopSec=15
+
+[Install]
+WantedBy=default.target

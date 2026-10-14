@@ -1,0 +1,19 @@
+[Unit]
+Description=Fetch and verify Bibit voice model assets
+# 安装、开机与人工补齐共用这一条路径：脚本自己判断资产是否就绪（已就绪则只
+# 校验并补 marker，不重复下载），失败由 systemd 退避重试，状态与日志都留在
+# journal 与 unit 状态里，不再依赖无人接收退出码的后台进程。
+StartLimitIntervalSec=1800
+StartLimitBurst=10
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/bibit-voice/download_models.sh --models-only
+# 资产总量约 1.1GB；给一个有限上限，异常卡死时不会永久占住任务。
+TimeoutStartSec=1800
+Restart=on-failure
+RestartSec=60
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

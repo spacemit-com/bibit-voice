@@ -1,0 +1,24 @@
+/build/
+/build-*/
+/out/
+/.cache/
+/.vscode/
+/.idea/
+*.user
+*.log
+*.core
+core.*
+compile_commands.json
+__pycache__/
+*.py[cod]
+
+# Models and runtimes are installed under /opt/bibit by scripts/download_models.sh.
+/models/
+/downloads/
+
+# Runtime state is written outside the repository.
+thresholds.conf
+baseline.json
+
+# Keep board-specific kernel panic evidence out of the GitLab repository.
+/docs/K3_KERNEL_PANIC.md

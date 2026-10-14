@@ -1,0 +1,19 @@
+[Unit]
+Description=Bibit shared Voice Tool proxy
+# 代理自己监听 /run/bibit/tool.sock，不依赖 audio 的启动结果：audio 缺席时
+# 客户端拿到的是"上游离线"，而不是 socket 不存在。刻意不加对 audio 的启动
+# 顺序依赖——那会把代理的 start job 排在 audio 之后，audio 一旦挂起，代理
+# 就永远起不来。
+StartLimitIntervalSec=60
+StartLimitBurst=10
+ConditionUser=!root
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bibit-voice-tool serve
+Restart=on-failure
+RestartSec=1
+RestartPreventExitStatus=7
+
+[Install]
+WantedBy=default.target

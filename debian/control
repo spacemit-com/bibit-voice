@@ -1,0 +1,40 @@
+Source: bibit-voice
+Section: sound
+Priority: optional
+Maintainer: Bianbu AI <bianbu@spacemit.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ pkg-config,
+ libpipewire-0.3-dev,
+ spacemit-onnxruntime,
+ curl,
+ bzip2,
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/spacemit-com/bibit-voice
+
+Package: bibit-voice
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libsherpa-onnx-c-api (= ${binary:Version}),
+ python3,
+ llama.cpp-tools-spacemit,
+Description: Bibit voice wake-word, VAD, and ASR service
+ Headless voice pipeline exposing a JSON-lines Unix socket protocol for wake
+ word detection, voice activity detection, and speech recognition (SenseVoice
+ or Qwen3-ASR) over PipeWire. This package ships the service, tool proxy, and
+ protocol documentation only; no socket client UI is included.
+
+Package: libsherpa-onnx-c-api
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ spacemit-onnxruntime,
+Description: sherpa-onnx C API runtime for SpacemiT riscv64
+ Runtime shared library for the sherpa-onnx C API, built for SpacemiT K3
+ riscv64. It depends on the SpacemiT onnxruntime engine and execution
+ provider (spacemit-onnxruntime).

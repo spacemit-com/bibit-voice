@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+
+MODEL_SERVICE=bibit-voice-models.service
+
+case "$1" in
+  configure)
+    # /run 是 tmpfs，tmpfiles.d 只在下次开机生效；这里确保安装后全局 socket
+    # 目录立即可用（单实例靠 /run/bibit/audio.sock 的 bind 独占保证）。
+    install -d -m 0700 -o bianbu -g bianbu /run/bibit \
+      || install -d -m 0700 /run/bibit
+
+    # 模型资产获取走 systemd 一次性服务：失败留在 journal 和 unit 状态里并按
+    # 退避重试，资产已就绪时只做校验与补 marker。marker 只由下载脚本在全部
+    # 资产校验通过后写出，postinst 不再用单个文件的存在去补就绪标记。
+    if [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; then
+      systemctl reset-failed "$MODEL_SERVICE" >/dev/null 2>&1 || true
+      systemctl start --no-block "$MODEL_SERVICE" >/dev/null 2>&1 || true
+    fi
+
+    # 单实例由全局 socket（/run/bibit/*.sock）的 connect 探测保证，这里只对
+    # 已登录的非 root 用户 restart 让改动立即生效；enable 交给
+    # dh_installsystemduser 的 global enable。--no-block 让 dpkg 不必等语音
+    # 服务启动完成：模型未就绪时 audio 会被条件跳过，不再有阻塞等待。
+    UNITS="bibit-audio.service bibit-voice-tool.service bibit-voice-models.path"
+    if command -v systemctl >/dev/null 2>&1 && command -v loginctl >/dev/null 2>&1; then
+      for u in $(loginctl list-sessions --no-legend 2>/dev/null | awk '{print $3}' | sort -u); do
+        [ "$u" = "root" ] && continue
+        uid=$(id -u "$u" 2>/dev/null) || continue
+        [ -d "/run/user/$uid" ] || continue
+        runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
+          systemctl --user daemon-reload >/dev/null 2>&1 || true
+        runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
+          systemctl --user restart --no-block $UNITS >/dev/null 2>&1 || true
+      done
+    fi
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+UNITS="bibit-audio.service bibit-voice-tool.service bibit-voice-models.path"
+
+case "$1" in
+  remove|purge|disappear)
+    # 与 postinst 的 per-user restart 对称：卸载时停掉所有已登录用户里正在跑
+    # 的实例（debhelper 的 user 服务自动段只做状态管理，不会 stop 运行实例）。
+    if command -v systemctl >/dev/null 2>&1 && command -v loginctl >/dev/null 2>&1; then
+      for u in $(loginctl list-sessions --no-legend 2>/dev/null | awk '{print $3}' | sort -u); do
+        uid=$(id -u "$u" 2>/dev/null) || continue
+        [ -d "/run/user/$uid" ] || continue
+        if [ "$u" = "root" ]; then
+          env XDG_RUNTIME_DIR="/run/user/$uid" systemctl --user disable --now $UNITS >/dev/null 2>&1 || true
+        else
+          runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
+            systemctl --user disable --now $UNITS >/dev/null 2>&1 || true
+        fi
+      done
+    fi
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

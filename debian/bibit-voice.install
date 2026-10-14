@@ -1,0 +1,14 @@
+usr/bin/bibit-audio usr/bin/
+usr/bin/bibit-voice-tool usr/bin/
+config/bibit.conf etc/bibit/
+config/keywords.txt etc/bibit/
+config/keywords-fallback.txt etc/bibit/
+config/bibit-asr-provider.config etc/bibit/
+assets/wo-zai.wav usr/share/bibit/sounds/
+packaging/bibit-audio.service usr/lib/systemd/user/
+packaging/bibit-voice-tool.service usr/lib/systemd/user/
+packaging/bibit-voice-models.path usr/lib/systemd/user/
+packaging/bibit-voice-models.service usr/lib/systemd/system/
+docs/protocol.md usr/share/doc/bibit-voice/
+scripts/download_models.sh usr/share/bibit-voice/
+packaging/bibit-voice.conf usr/lib/tmpfiles.d/

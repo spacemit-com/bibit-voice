@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@ --buildsystem=cmake
+
+override_dh_auto_configure:
+	./scripts/fetch_build_deps.sh
+	dh_auto_configure -- \
+		-DBIBIT_SHERPA_ROOT=/opt/bibit/models/runtime/sherpa-onnx-v1.12.36-linux-riscv64-spacemit-shared \
+		-DBIBIT_SHERPA_INCLUDE=/opt/bibit/include
+
+override_dh_auto_install:
+	dh_auto_install
+	install -D -m 0755 \
+		/opt/bibit/models/runtime/sherpa-onnx-v1.12.36-linux-riscv64-spacemit-shared/lib/libsherpa-onnx-c-api.so \
+		debian/tmp/usr/lib/riscv64-linux-gnu/libsherpa-onnx-c-api.so
+
+override_dh_shlibdeps:
+	dh_shlibdeps -- --ignore-missing-info

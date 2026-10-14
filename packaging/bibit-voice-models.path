@@ -1,0 +1,12 @@
+[Unit]
+Description=Start Bibit audio when voice model assets become ready
+# 资产获取由 bibit-voice-models.service 完成；本 unit 只负责"资产后到"这一
+# 时刻把 audio 拉起来，补齐 ConditionPathExists 跳过之后缺少的自动恢复。
+ConditionUser=!root
+
+[Path]
+PathExists=/opt/bibit/models/.bibit-voice-models-downloaded
+Unit=bibit-audio.service
+
+[Install]
+WantedBy=default.target
